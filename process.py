@@ -4,9 +4,9 @@ import sys
 import functools
 import re
 import unicodedata
-import spacy
-
-nlp = spacy.load('en_core_web_sm')
+# import spacy
+# 
+# nlp = spacy.load('en_core_web_sm')
 
 person = { #basic definition of resume
 	"name":"",
@@ -20,6 +20,7 @@ person = { #basic definition of resume
 	"sections":{},
 	"links": []
 }
+
 BULLETS = ["•", "-", "–"]
 HEADERS= {
 	"education": [
@@ -62,7 +63,12 @@ HEADERS= {
 		"miscellaneous",
 		"extracurricular",
 		"activities",
-		"extra-curricular"
+		"extra-curricular",
+		"interests"
+	],
+	"publications": [
+		"papers",
+		"publications"
 	]
 	
 }
@@ -76,6 +82,7 @@ if (len(sys.argv) > 1 and sys.argv[1] != None):
 	i = int(sys.argv[1])
 
 doc = fitz.open(f"misc/resumes/resume{i}.pdf")
+# doc = fitz.open("resumex.pdf")
 
 resume = []
 font_matrix = {}
@@ -108,7 +115,7 @@ def text_print():
 	for page in doc:
 		print(page.get_text())
 
-structure_text_print()
+# structure_text_print()
 
 #preprocess step 0: extract all internet links and check those for profiles
 for page in doc:
@@ -220,7 +227,7 @@ resume = new_resume
 
 # print_p(resume)
 
-#modal font size
+#find modal i.e. most common font size
 size_dict = list(set([str(key[1]) for key in font_matrix]))
 size_dict = {x: 0 for x in size_dict}
 for ((font, fontsize), occurrence) in font_matrix.items():
@@ -235,23 +242,32 @@ modal_size = float(modal_size)
 # print(font_matrix)
 
 
-#extract candidate headers
+#extract possible headers from resume
 for block in resume:
 	for line in block:
 		for span in line['spans']:
 			counter = []
 			if (span["flags"] & 16): #is bold
 				counter.append("bold")
+				
 			if (len(line["spans"]) == 1): #is the only item in the line
 				counter.append("only item")
+				
 			if (span['size'] > modal_size): #size larger than modal size
-				counter.append("larger")
+				counter.append(span['size'])
+				
 			if (span['text'].isupper() or "Cap" in span['font']): #full uppercase?
 				counter.append("uppercase")
+				
 			if (len(span['text'].split()) < 4):
 				counter.append("few words")
+			
+			#check underline
+			
+			
 			if (span['text'][0] in BULLETS): #first char of header is never a bullet
 				counter = []
+				
 			if (len(counter) >= 3):
 				header_candidates.append((span['text'], span['font'], counter, len(counter), span))
 				# print("Header candidate")
@@ -263,7 +279,7 @@ for block in resume:
 #idea 2: NLP it to see if everything is a noun - if *any*
 #proper nouns, discard immediately
 
-print_p(header_candidates)
+# print_p(header_candidates)
 
 section_headers = []
 #deal with first header separately, is name
@@ -278,6 +294,14 @@ if (not functools.reduce(lambda x, y: x or y,[x in HEADERS_ALL for x in name.low
 	name = " ".join([x.capitalize() for x in name])
 	person['name'] = name
 #deal with rest generically
+#header_characteristics - if found in one header,
+#will be in all headers regardless of how stuff parsed
+#characteristics: bold, certain size, uppercase
+header_characteristics = {
+	'bold': None,
+	'size': None,
+	'uppercase': None
+}
 for header_obj in header_candidates:
 	header = header_obj[0]
 	for section in HEADERS:
@@ -292,7 +316,7 @@ for header_obj in header_candidates:
 # span['font'], 
 # counter, 
 # len(counter), 
-# span
+# span (the span that the header is)
 # )
 
 #turn section headers into full sections
@@ -306,19 +330,21 @@ prev_index = 0
 for section_index, (section, header_obj) in enumerate(section_headers):
 	if (section not in person['sections']):
 		person['sections'][section] = []
-	print(section)
+# 	print(section)
 	while (curr_index < len(line_flattened_resume)):
 		line = line_flattened_resume[curr_index]
 		if (header_obj[4] in line['spans']): #found the right line
+			line["header"] = header_obj[4] #this line has a header
 			break
 		curr_index += 1
-	print(f"found at line {curr_index}, prev_index: {prev_index}")
+# 	print(f"found at line {curr_index}, prev_index: {prev_index}")
 	if (section_index == 0):
 		#first index -> add first section to "personal"
 		if (person['name'] != ""):
 			person['sections']['personal'] = line_flattened_resume[0:curr_index]
 	else:
 		person['sections'][section_headers[section_index - 1][0]] += line_flattened_resume[prev_index:curr_index]
+		person['sections'][section_headers[section_index - 1][0]]
 
 	prev_index = curr_index
 #handle last section_heading
@@ -329,15 +355,16 @@ person['sections'][section_headers[len(section_headers) - 1][0]] += line_flatten
 # 
 # resume_text_print()
 # 
-# print_p(person)
-for section, lines in person['sections'].items():
-	print(section)
-	print("---")
-	for line in lines:
-		for span in line['spans']:
-			print(span['text'], end="|")
-		print("")
-	print("\n\n---\n\n")
+# for section, lines in person['sections'].items():
+# 	print(section)
+# 	print("---")
+# 	for line in lines:
+# 		for span in line['spans']:
+# 			if ("header" in line and span == line['header']):
+# 				print("*H*", end="")
+# 			print(span['text'], end="|")
+# 		print("")
+# 	print("\n\n---\n\n")
 
 #handle personal section
 #personal section: 
@@ -347,7 +374,7 @@ if ("personal" in person['sections']):
 	for line in person['sections']['personal']:
 		for span in line['spans']:
 			personal_text += span['text'] + " "
-	phone = re.search("[0-9\s+()]{8,15}" ,personal_text)
+	phone = re.search("([0-9\s+()]{8,20})" ,personal_text)
 	if (phone):
 		person['phone'] = phone.expand(r"\1")
 	email = re.search("([^:\s/]+@[\S]+)", personal_text)
@@ -355,12 +382,15 @@ if ("personal" in person['sections']):
 		email_text = email.expand(r"\1")
 		if (not email_text in person['email']):
 			person['email'].append(email_text)
-	personal_text = [x.lower() for x in personal_text.split()]
-	personal_nlp = nlp(" ".join(personal_text))
-	for (sent in personal_nlp)
+# 	personal_text = [x.lower() for x in personal_text.split()]
+# 	personal_nlp = nlp(" ".join(personal_text))
+# 	for (sent in personal_nlp):
+# 		
 	
-
-
+for page in doc:
+	print(list(page.annots(types=(fitz.PDF_ANNOT_UNDERLINE))))
+	print_p(page.get_drawings())
+# print_p(person)
 
 
 
