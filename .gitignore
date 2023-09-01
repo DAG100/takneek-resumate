@@ -1,5 +1,10 @@
 misc
+__pycache__
 pdf_parsing
 test*
 .DS_Store
 **/.DS_Store
+resume*.pdf
+resume*.txt
+resume*.html
+structure.txt

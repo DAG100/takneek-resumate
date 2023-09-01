@@ -127,6 +127,25 @@ convo with ronit
 - add lemmatization or stemming
 - try using models to parse the whole thing
 - preprocessing: remove all stopwords from pdf before continuing and then try algorithmic stuff as well
+
+
+
+
+
+
+
+
+
+
+
+to do:
+- parse education
+- parse projects, experience, por in same way
+- parse skills using skills list/NER
+- parse courses - simple
+
+
+
 - keep for model
 	- projects
 	- skills
