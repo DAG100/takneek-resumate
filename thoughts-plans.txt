@@ -1,0 +1,138 @@
+*py
+
+
+*spaCy
+
+libs
+-------
+pdfminer - seems complicated
+pypdf/pypdf2 - seems good-ish, better space distinction how
+pymupdf - try to get this to work, seems good
+
+caveats
+-------
+- resume may be an image -> use tesseract?
+- unconventional structuring - might not be an issue
+- multiple pages!!! remove page breaks when rendering to image!!!
+
+
+questions to ask
+-------
+- resume format - only IITK or others also used?
+	- all resumes in proper text? can a format be guaranteed? or e.g. images for entire pdf
+- structure of resume - can be any structure or common-sense/fixed-format structure used?
+- pdfs given by eval team?
+- elaborate on "analytics from all the resumes"
+	- individual analytics?
+	- global statistics?
+
+
+
+plan
+-------
+- collect pdf examples
+	- form?
+	- ask nishant?
+	- generate by self?
+		- Latex templates - ask around? another form?
+- write pdf parser
+	- approaches:
+		- algorithmic
+			- parse strings in pdf by position, line by line - separate into individual segments, combine based on relevance
+			- identify sections using font identifiers
+				- see if can access font data in pdf metadata and decide bold/not using that
+			- identify keywords e.g. CPI, GPA, %age, etc. and use those - use regex for this
+			
+			- process:
+				- identify headers using 
+					- bold fonts
+					- larger size
+					- all caps
+					- nothing else in the same line
+					- short phrase - only a few words
+				- header to header part -> a section
+				- identify purpose of section:
+					- first section: name, biodata
+						- section header: name
+						- search for phone number, etc. here
+					- section key words:
+						- make a list for each possible one e.g. education/academic qualifications/etc.
+						- split section into subsections based on bolding, presence on single line
+						- detect tables and handle separately
+						- use keywords to mark off areas as related to certain subsection
+						- courses:
+							- key words
+						- skills/tools
+							- list of programming languages/technologies - use this to mark section and then split based on that
+						- projects, experiences
+							- split into subsections based on bulleting?
+							- use regex to extract dates?
+							- use regex to extract these things?
+								- phone
+								- email
+								- links (definitely)
+								- branch
+								- program
+								- CPI
+								- %ages
+			
+			
+			
+			
+		- ML
+			- tesseract 4+: no font attr except size
+			- render to an image
+			- use computer vision to divide into sections and convert each section to text - header is obviously first line of each section
+				- idea: 
+					- find headings
+					- sections -> bits of page between headings
+					- will need to detect columns too - but that shouldn't be too hard 
+			- run algos or even more ML models on each section
+	- extracts basic data abt. applicant
+		- name
+		- phone
+		- email
+		- github/linkedin
+		- education + %ages
+		- branch
+		- skills
+		- courses
+		- etc. 
+- analyses data for each resume using ML models?
+	- decide profile of applicant - e.g. consulting, softdev, quant, etc.
+		- can have a circular line graph to show suitability for each profile?
+	- keywords of resume
+	- highlights
+	- project summaries
+	- scrape github/linkedin?
+- data about resumes in general
+	- common keywords
+- tech stack
+	- will require python for pdf processing, ml models -> flask?
+	- for website:
+		- simple react app (with react router) that makes api calls to server - doable but a little icky, why not server side rendering
+		- next app with ssr - but will presumably call python scripts?
+			- do we need to call python scripts immediately? only need to call when adding info to db or such... might be able to pull this off then
+			
+			
+current goals
+-------
+- configure basic pdf parser
+
+
+
+convo with ronit
+-------
+- try using different models that are commented out in code except SVC, decision tree
+- add lemmatization or stemming
+- try using models to parse the whole thing
+- preprocessing: remove all stopwords from pdf before continuing and then try algorithmic stuff as well
+- keep for model
+	- projects
+	- skills
+	- 
+
+
+links
+------
+https://github.com/michaelmml/NLP-information-extraction
