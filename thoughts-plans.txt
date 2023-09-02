@@ -140,6 +140,7 @@ convo with ronit
 
 to do:
 - parse education
+	- regex for CPI
 - parse projects, experience, por in same way
 - parse skills using skills list/NER
 - parse courses - simple
