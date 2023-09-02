@@ -1,5 +1,7 @@
 from flask import Flask, request, redirect
 import time
+from pathlib import Path
+from process import process_resume
 # from pymongo import MongoClient
 
 
@@ -35,6 +37,15 @@ def upload_pdf():
         return redirect(("http://127.0.0.1:3000/"))
     else:
         return "Invalid file format. Only PDF files are allowed", 400
+@app.route('/getParsedResume', methods=['GET'])
+def getParsedResume():
+    file_name = request.args.get("file_name")
+    with open(f"uploads/{file_name}", 'rb') as file:
+        data = file.read()
+    parsed_data = process_resume(data)
+    return parsed_data
 
 if __name__ == '__main__':
+    folder = Path.cwd() / "uploads"
+    folder.mkdir(exist_ok=True)
     app.run(debug=True)
