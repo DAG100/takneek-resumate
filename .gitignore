@@ -1,6 +1,7 @@
 misc
 __pycache__
 pdf_parsing
+environment
 test*
 .DS_Store
 **/.DS_Store
