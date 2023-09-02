@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect
-import time
+import time, os
 from pathlib import Path
 from process import process_resume
 # from pymongo import MongoClient
@@ -43,7 +43,15 @@ def getParsedResume():
     with open(f"uploads/{file_name}", 'rb') as file:
         data = file.read()
     parsed_data = process_resume(data)
-    return parsed_data
+    return f"{parsed_data['sections']['projects']},{parsed_data['sections']['experience']}"
+@app.route('/getAnalytics', methods=['GET'])
+def getAnalytics():
+    pdfs = os.listdir("uploads")
+    data = []
+    for pdf in pdfs:
+        with open(f"uploads/{pdf}", 'rb') as file:
+            data.append(process_resume(file.read()))
+    return data
 
 if __name__ == '__main__':
     folder = Path.cwd() / "uploads"
