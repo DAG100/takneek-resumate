@@ -453,10 +453,13 @@ def process_resume(resume_bytes):
 			lines.append(spans)
 		person['sections'][section] = lines
 
-	return json.dumps(person)	
+	#return json.dumps(person)	
 	# print_p(person['sections']['skills'])
 	# print_p(person['sections']['courses'])
 
 	# print(resume)
 	# print_p(header_candidates)
 	# resume_text_print()
+	# keys = ['projects' ,'experience']
+
+	return f"{person['sections']['projects']},{person['sections']['experience']}"
