@@ -453,7 +453,7 @@ def process_resume(resume_bytes):
 			lines.append(spans)
 		person['sections'][section] = lines
 
-	return person)
+	return person
 	# print_p(person['sections']['skills'])
 	# print_p(person['sections']['courses'])
 
